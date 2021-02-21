@@ -1,3 +1,4 @@
+import lombok.Getter;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -13,7 +14,11 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+
 public class Bot extends TelegramLongPollingBot {
+    private int randomNumber;
+    private int count;
 
     public static void main(String[] args) {
         ApiContextInitializer.init();
@@ -26,26 +31,7 @@ public class Bot extends TelegramLongPollingBot {
         }
 
     }
-
-    public void checkWords(Update update) {
-
-        IrregularVerbs irregularVerbs = new IrregularVerbs();
-        List<ModelVerbs> modelVerbsList = irregularVerbs.readIrrVerbs();
-        int i = (int) (Math.random() * modelVerbsList.size());
-        String str = modelVerbsList.get(0).getRussianForm();
-
-        sendMsg(update.getMessage().getChatId().toString(), "Глагол: " + str);
-
-        String message = update.getMessage().getText();
-        if (message != null) {
-            if (message.equals(modelVerbsList.get(0).getFirstForm())) {
-                sendMsg(update.getMessage().getChatId().toString(), "Красавчик");
-            }else{
-                sendMsg(update.getMessage().getChatId().toString(), "НУ ТАКОЕ!");
-            }
-        }
-    }
-
+    
     public void onUpdateReceived(Update update) {
         //входящее смс для бота
         String message = update.getMessage().getText();
@@ -54,26 +40,51 @@ public class Bot extends TelegramLongPollingBot {
 
         IrregularVerbs irregularVerbs = new IrregularVerbs();
         List<ModelVerbs> modelVerbsList = irregularVerbs.readIrrVerbs();
+        // int count = 0;
+        int i = 0;
         if (message != null) {
             if (message.equals("start")) {
                 sendMsg(message1, "поехали ёпта");
-//                checkWords(update);
-
-                String str = modelVerbsList.get(0).getRussianForm();
+                //  checkWords();
+                i = (int) (Math.random() * modelVerbsList.size());
+                randomNumber = i;
+                String str = modelVerbsList.get(getRandomNumber()).getRussianForm();
                 sendMsg(update.getMessage().getChatId().toString(), "Глагол: " + str);
-
-
-
+                sendMsg(update.getMessage().getChatId().toString(), "Введи Infinitive");
 
             } else if (message.equals("help")) {
+
                 sendMsg(update.getMessage().getChatId().toString(), "тут будет когда-то помощь");
 
             } else if (message.equals("stop")) {
+
                 sendMsg(update.getMessage().getChatId().toString(), "может быть сделаем остановочку");
-            }else if (message.equals(modelVerbsList.get(0).getFirstForm())) {
+
+            } else if (message.equalsIgnoreCase(modelVerbsList.get(getRandomNumber()).getFirstForm())) {
+
                 sendMsg(update.getMessage().getChatId().toString(), "Красавчик");
-            }else{
+                sendMsg(update.getMessage().getChatId().toString(), "Введи Past Simple");
+                count++;
+
+            } else if (message.equalsIgnoreCase(modelVerbsList.get(getRandomNumber()).getSecondForm()) && getCount() == 1) {
+
+                sendMsg(update.getMessage().getChatId().toString(), "Красавчик");
+                sendMsg(update.getMessage().getChatId().toString(), "Введи Past Participle");
+                count++;
+
+            } else if (message.equalsIgnoreCase(modelVerbsList.get(getRandomNumber()).getThirdForm()) && getCount() == 2) {
+                sendMsg(update.getMessage().getChatId().toString(), "Красавчик");
+                i = (int) (Math.random() * modelVerbsList.size());
+                randomNumber = i;
+                String str = modelVerbsList.get(getRandomNumber()).getRussianForm();
+                sendMsg(update.getMessage().getChatId().toString(), "Глагол: " + str);
+                sendMsg(update.getMessage().getChatId().toString(), "Введи Infinitive");
+                count = 0;
+
+            } else {
+
                 sendMsg(update.getMessage().getChatId().toString(), "НУ ТАКОЕ!");
+
             }
         }
         // sendMsg(update.getMessage().getChatId().toString(), message);
@@ -103,6 +114,7 @@ public class Bot extends TelegramLongPollingBot {
 //        }
 
     }
+
 
     public synchronized void sendMsg(String chatId, String s) {
         SendMessage sendMessage = new SendMessage();
@@ -168,49 +180,6 @@ public class Bot extends TelegramLongPollingBot {
 
 
     }
-
-//    public String/*void*/ working(Message message, Update update) {
-//
-//        IrregularVerbs irregularVerbs = new IrregularVerbs();
-//        List<ModelVerbs> modelVerbsList = irregularVerbs.readIrrVerbs();
-//        message = update.getMessage();
-//
-//        //sendMsg(message, modelVerbsList.get(0).getRussianForm());
-//        // while (true) {
-//        int i = (int) (Math.random() * modelVerbsList.size());
-//        String str = modelVerbsList.get(i).getFirstForm();
-//        sendMsg(message, "Глагол: " + modelVerbsList.get(i).getRussianForm());
-//        sendMsg(message, "Введи первую форму глагола");
-//        if (message != null && message.hasText()) {
-//
-//            if (message.getText().equalsIgnoreCase(modelVerbsList.get(i).getFirstForm())) {
-//
-//                return "Верно";
-//                // return "введи вторую форму";
-////                    sendMsg(message, "Верно!");
-////                    sendMsg(message, "Введи вторую форму глагола");
-//
-////                    if (message.getText().equalsIgnoreCase(modelVerbsList.get(i).getSecondForm())){
-////
-////                        sendMsg(message, "Верно!");
-////                        sendMsg(message, "Введи третью форму глагола");
-////
-////                        if (message.getText().equalsIgnoreCase(modelVerbsList.get(i).getThirdForm())){
-////
-////                            sendMsg(message, "Верно!!! Давай приступим к следующему слову");
-////                        }
-////                    }
-//            } else {
-//                //sendMsg(message, "ПОКА!");
-//                return "POKA";
-//            }
-//        } else return "bye";
-//
-//        //}
-//
-//
-//    }
-
 
     public String getBotUsername() {
         return "IrregularVerbsBot";
